@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>5v5 Soccer Tournament Signup</title>
+  <style>
+    body { font-family: sans-serif; max-width: 900px; margin: auto; padding: 20px; }
+    .card { border: 1px solid #ccc; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
+    .team { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+    button { margin-top: 10px; padding: 6px 12px; }
+    .bracket { background: #f9f9f9; padding: 10px; border-radius: 10px; }
+  </style>
+</head>
+<body>
+  <h1>5v5 Soccer Tournament Signup</h1>
+
+  <div class="card">
+    <h2>Register Player</h2>
+    <input id="playerName" placeholder="Your Name" /><br/><br/>
+    <input id="teamName" placeholder="Team Name (Leave blank to join a team)" /><br/><br/>
+    <button onclick="register()">Submit</button>
+  </div>
+
+  <h2>Teams</h2>
+  <div id="teams" class="grid"></div>
+
+  <h2>Live Bracket</h2>
+  <div id="bracket" class="grid"></div>
+
+  <script>
+    const teams = [];
+
+    function register() {
+      const playerName = document.getElementById("playerName").value.trim();
+      const teamName = document.getElementById("teamName").value.trim();
+
+      if (!playerName) return alert("Please enter a name.");
+
+      if (teamName) {
+        const logo = `https://api.dicebear.com/7.x/bottts/svg?seed=${teamName}`;
+        teams.push({ name: teamName, logo, players: [playerName] });
+      }
+
+      render();
+      document.getElementById("playerName").value = '';
+      document.getElementById("teamName").value = '';
+    }
+
+    function joinTeam(index) {
+      const playerName = document.getElementById("playerName").value.trim();
+      if (!playerName) return alert("Please enter your name first.");
+      if (teams[index].players.length < 6) {
+        teams[index].players.push(playerName);
+        render();
+        document.getElementById("playerName").value = '';
+      }
+    }
+
+    function render() {
+      const teamDiv = document.getElementById("teams");
+      const bracketDiv = document.getElementById("bracket");
+      teamDiv.innerHTML = '';
+      bracketDiv.innerHTML = '';
+
+      teams.forEach((team, index) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="team">
+            <div class="avatar"><img src="${team.logo}" width="40" /></div>
+            <strong>${team.name}</strong>
+          </div>
+          <ul>${team.players.map(p => `<li>${p}</li>`).join('')}</ul>
+          ${team.players.length < 6 ? `<button onclick="joinTeam(${index})">Join Team</button>` : ''}
+        `;
+        teamDiv.appendChild(card);
+      });
+
+      const bracketTeams = teams.slice(0, 8);
+      if (bracketTeams.length >= 2) {
+        bracketTeams.forEach(team => {
+          const div = document.createElement("div");
+          div.className = "bracket";
+          div.innerHTML = `<div class="team"><div class="avatar"><img src="${team.logo}" width="40"/></div><strong>${team.name}</strong></div>`;
+          bracketDiv.appendChild(div);
+        });
+      } else {
+        bracketDiv.innerHTML = '<p>Waiting for more teams to display bracket...</p>';
+      }
+    }
+  </script>
+</body>
+</html>
